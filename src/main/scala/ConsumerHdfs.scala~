@@ -1,0 +1,54 @@
+import org.apache.spark.SparkConf
+import org.apache.spark.streaming.kafka.KafkaUtils
+import org.apache.spark.streaming.{Seconds, StreamingContext}
+
+/**
+  * Created by saga on 6/7/17.
+  */
+object ConsumerHdfs {
+  def main(args: Array[String]) {
+
+//    val props = new Properties()
+//    props.put("bootstrap.servers", "hadoop-vm:9092")
+//    props.put("group.id", "test")
+//    props.put("enable.auto.commit", "true")
+//    props.put("auto.commit.interval.ms", "1000")
+//    props.put("session.timeout.ms", "30000")
+//    props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
+//    props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
+//
+//    val consumer = new KafkaConsumer[String, String](props)
+//    //Kafka Consumer subscribes list of topics here.
+//    consumer.subscribe(Arrays.asList("great"))
+//    while (true) {
+//      val records = consumer.poll(100)
+//
+//    }
+
+//    val topicMap = "great".split(",").map((_, "1".toInt)).toMap
+//    val lines = KafkaUtils.createStream(ssc, zkQuorum, group, topicMap).map(_._2)
+//    val words = lines.flatMap(_.split(" "))
+//    val wordCounts = words.map(x => (x, 1L))
+//      .reduceByKeyAndWindow(_ + _, _ - _, Minutes(10), Seconds(2), 2)
+//    wordCounts.print()
+
+    val sparkConf = new SparkConf().setAppName("twitter")
+    val ssc = new StreamingContext(sparkConf, Seconds(10))
+    ssc.checkpoint("checkpoint")
+
+    val topicMap = Map("twitter" -> 1)
+    val linesStream = KafkaUtils.createStream(ssc, "hadoop-vm:2181", "group1", topicMap).map(_._2)
+    linesStream.foreachRDD(_ => println)
+//    lines.saveAsTextFiles("test", "txt")
+//    foreachRDD(rdd => {
+//      rdd.saveAsTextFile("hdfs://hadoop-vm:8020/user/saga/out")
+//
+//      rdd.foreach(tweet => {
+//        println(tweet)
+//      })
+//    })
+
+    ssc.start()
+    ssc.awaitTermination()
+  }
+}
